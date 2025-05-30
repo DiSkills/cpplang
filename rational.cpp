@@ -7,8 +7,7 @@ class Rational {
     friend Rational operator*(const Rational &a, const Rational &b);
     friend Rational operator/(const Rational &a, const Rational &b);
 
-    long long int n;
-    long long int m;
+    long long int n, m;
 public:
     Rational(long long int n = 0, long long int m = 1) : n(n), m(m) {}
     long long int GetN() const { return n; }
@@ -33,6 +32,8 @@ public:
         { n -= m; return *this; }
     const Rational operator--(int)
         { Rational r(*this); n -= m; return r; }
+    void print(char c = '\n') const
+        { printf("%lld/%lld%c", n, m, c); }
 };
 
 inline Rational operator+(const Rational &a, const Rational &b)
@@ -57,44 +58,36 @@ inline Rational operator/(const Rational &a, const Rational &b)
 
 int main()
 {
-    Rational a(2, 3), b(3, 15), f;
-    printf("%lld/%llu\n", a.GetN(), a.GetM()); /* 2/3 */
+    const Rational a(2, 3), b(3, 15);
+    a.print();
 
-    Rational c(a + b);
-    printf("%lld/%llu\n", c.GetN(), c.GetM()); /* 39/45 */
+    Rational c = a + b;
+    c.print();
+    (a - b).print();
 
-    Rational d(c - a + 1);
-    printf("%lld/%llu\n", d.GetN(), d.GetM()); /* 162/135 */
+    Rational d = -a * b;
+    d.print();
 
-    d = -a * b;
-    printf("%lld/%llu\n", d.GetN(), d.GetM()); /* -6/45 */
+    d = 3 * d / b + 1;
+    d.print();
 
-    Rational e = 3 * d / b + 1;
-    printf("%lld/%llu\n", e.GetN(), e.GetM()); /* -135/135 */
+    Rational f = 2;
+    f.print();
+    (f += Rational(1, 2)).print(' ');
+    printf("%f %lld %lld\n", f.Double(), f.Int(), f.Round());
+    f -= 2; f.print();
+    f *= Rational(4, 3); f.print();
+    (f /= f).print();
 
-    f = 2;
-    printf("%lld/%llu\n", f.GetN(), f.GetM()); /* 2/1 */
+    f--; f.print();
+    f++; f.print();
+    --f; f.print();
+    ++f; f.print();
 
-    f += Rational(1, 2);
-    printf("%lld/%llu %f %lld %lld\n", f.GetN(), f.GetM(),
-            f.Double(), f.Int(), f.Round()); /* 5/2 2.5 2 3 */
-
-    f -= 2;
-    printf("%lld/%llu\n", f.GetN(), f.GetM()); /* 1/2 */
-
-    f *= Rational(4, 3);
-    printf("%lld/%llu\n", f.GetN(), f.GetM()); /* 4/6 */
-
-    f /= f;
-    printf("%lld/%llu\n", f.GetN(), f.GetM()); /* 24/24 */
-
-    f--;
-    printf("%lld/%llu\n", f.GetN(), f.GetM()); /* 0/24 */
-    f++;
-    printf("%lld/%llu\n", f.GetN(), f.GetM()); /* 24/24 */
-    --f;
-    printf("%lld/%llu\n", f.GetN(), f.GetM()); /* 0/24 */
-    ++f;
-    printf("%lld/%llu\n", f.GetN(), f.GetM()); /* 24/24 */
+#if 0
+    Rational g(1, 21870289), h(1, 421730688463);
+    f = g + h;
+    printf("%lld/%lld\n", f.GetN(), f.GetM());
+#endif
     return 0;
 }
