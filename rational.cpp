@@ -9,7 +9,8 @@ class Rational {
 
     long long int n, m;
 public:
-    Rational(long long int n = 0, long long int m = 1) : n(n), m(m) {}
+    Rational(long long int a = 0, long long int b = 1)
+        { long long int d = gcd(a, b); n = a / d; m = b / d; }
     long long int GetN() const { return n; }
     long long int GetM() const { return m; }
     double Double() const { return (double)n / m; }
@@ -34,32 +35,56 @@ public:
         { Rational r(*this); n -= m; return r; }
     void print(char c = '\n') const
         { printf("%lld/%lld%c", n, m, c); }
+private:
+    static long long int gcd(long long int a, long long int b);
 };
 
-inline Rational operator+(const Rational &a, const Rational &b)
+Rational operator+(const Rational &a, const Rational &b)
 {
-    return Rational(a.n * b.m + a.m * b.n, a.m * b.m);
+    long long int d = Rational::gcd(a.m, b.m);
+    return Rational((b.m / d) * a.n + (a.m / d) * b.n, (a.m / d) * b.m);
 }
 
-inline Rational operator-(const Rational &a, const Rational &b)
+Rational operator-(const Rational &a, const Rational &b)
 {
-    return a + (-b);
+    long long int d = Rational::gcd(a.m, b.m);
+    return Rational((b.m / d) * a.n - (a.m / d) * b.n, (a.m / d) * b.m);
 }
 
-inline Rational operator*(const Rational &a, const Rational &b)
+Rational operator*(const Rational &a, const Rational &b)
 {
-    return Rational(a.n * b.n, a.m * b.m);
+    long long int d1 = Rational::gcd(a.n, b.m), d2 = Rational::gcd(a.m, b.n);
+    return Rational((a.n / d1) * (b.n / d2), (a.m / d2) * (b.m / d1));
 }
 
-inline Rational operator/(const Rational &a, const Rational &b)
+Rational operator/(const Rational &a, const Rational &b)
 {
-    return Rational(a.n * b.m, a.m * b.n);
+    long long int d1 = Rational::gcd(a.n, b.n), d2 = Rational::gcd(a.m, b.m);
+    bool is_negative = (a.n < 0 && b.n > 0) || (a.n > 0 && b.n < 0);
+    long long int numerator = (llabs(a.n) / d1) * (b.m / d2),
+         denominator = (a.m / d2) * (llabs(b.n) / d1);
+    return Rational(is_negative ? -numerator : numerator, denominator);
+}
+
+long long int Rational::gcd(long long int a, long long int b)
+{
+    a = llabs(a);
+    b = llabs(b);
+    while (a != 0 && b != 0) {
+        if (a > b) {
+            a %= b;
+        } else {
+            b %= a;
+        }
+    }
+    return a + b;
 }
 
 int main()
 {
     const Rational a(2, 3), b(3, 15);
     a.print();
+    b.print();
 
     Rational c = a + b;
     c.print();
@@ -84,10 +109,15 @@ int main()
     --f; f.print();
     ++f; f.print();
 
-#if 0
-    Rational g(1, 21870289), h(1, 421730688463);
+    c = Rational(2, 3);
+    d = Rational(-1, 3);
+    (c / d).print();
+    (c / -d).print();
+    (-c / d).print();
+    (-c / -d).print();
+
+    Rational g(1, 4294967298), h(1, 4294967298);
     f = g + h;
     printf("%lld/%lld\n", f.GetN(), f.GetM());
-#endif
     return 0;
 }
