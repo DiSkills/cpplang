@@ -8,15 +8,15 @@ class Rational {
     friend Rational operator/(const Rational &a, const Rational &b);
 
     long long int n;
-    unsigned long long int m;
+    long long int m;
 public:
-    Rational(long long int n = 0, unsigned long long int m = 1) : n(n), m(m) {}
+    Rational(long long int n = 0, long long int m = 1) : n(n), m(m) {}
     long long int GetN() const { return n; }
-    unsigned long long int GetM() const { return m; }
-    Rational operator-() const { return Rational(-n, m); }
+    long long int GetM() const { return m; }
     double Double() const { return (double)n / m; }
     long long int Int() const { return trunc(Double()); }
     long long int Round() const { return round(Double()); }
+    Rational operator-() const { return Rational(-n, m); }
     const Rational &operator+=(const Rational &r)
         { *this = *this + r; return *this; }
     const Rational &operator-=(const Rational &r)
@@ -25,6 +25,14 @@ public:
         { *this = *this * r; return *this; }
     const Rational &operator/=(const Rational &r)
         { *this = *this / r; return *this; }
+    const Rational &operator++()
+        { n += m; return *this; }
+    const Rational operator++(int)
+        { Rational r(*this); n += m; return r; }
+    const Rational &operator--()
+        { n -= m; return *this; }
+    const Rational operator--(int)
+        { Rational r(*this); n -= m; return r; }
 };
 
 inline Rational operator+(const Rational &a, const Rational &b)
@@ -78,6 +86,15 @@ int main()
     printf("%lld/%llu\n", f.GetN(), f.GetM()); /* 4/6 */
 
     f /= f;
+    printf("%lld/%llu\n", f.GetN(), f.GetM()); /* 24/24 */
+
+    f--;
+    printf("%lld/%llu\n", f.GetN(), f.GetM()); /* 0/24 */
+    f++;
+    printf("%lld/%llu\n", f.GetN(), f.GetM()); /* 24/24 */
+    --f;
+    printf("%lld/%llu\n", f.GetN(), f.GetM()); /* 0/24 */
+    ++f;
     printf("%lld/%llu\n", f.GetN(), f.GetM()); /* 24/24 */
     return 0;
 }
