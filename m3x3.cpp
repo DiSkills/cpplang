@@ -5,16 +5,17 @@ class M {
     int matrix[rows][cols];
 public:
     class I {
-        M &m;
+        friend class M;
+        M *m;
         int i;
+        I(M *m, int i) : m(m), i(i) {}
     public:
-        I(M &m, int i) : m(m), i(i) {}
-        int &operator[](int j) { return m.matrix[i - 1][j - 1]; }
+        int &operator[](int j) { return m->matrix[i - 1][j - 1]; }
     };
     friend class I;
 
     M();
-    I operator[](int i) { return I(*this, i); }
+    I operator[](int i) { return I(this, i); }
     M operator+(const M &op2) const;
 };
 
