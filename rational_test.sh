@@ -1,6 +1,10 @@
 #!/bin/bash
 
-output=$(printf "2/3
+TARGET=prog
+
+g++ -ggdb -Wall -o$TARGET rational.cpp
+
+EXPECTED=$(printf "2/3
 1/5
 13/15
 7/15
@@ -21,8 +25,10 @@ output=$(printf "2/3
 -2/1
 1/2147483649")
 
-res=$(./prog)
-if [ x"$output" != x"$res" ]; then
-    echo TEST FAILED "$res"
+res=$(./$TARGET)
+rm $TARGET
+if [ x"$EXPECTED" != x"$res" ]; then
+    echo TEST FAILED
+    echo "$res"
     exit 1
 fi

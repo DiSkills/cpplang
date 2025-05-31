@@ -9,8 +9,7 @@ class Rational {
 
     long long int n, m;
 public:
-    Rational(long long int a = 0, long long int b = 1)
-        { long long int d = gcd(a, b); n = a / d; m = b / d; }
+    Rational(long long int a = 0, long long int b = 1);
     long long int GetN() const { return n; }
     long long int GetM() const { return m; }
     double Double() const { return (double)n / m; }
@@ -42,13 +41,13 @@ private:
 Rational operator+(const Rational &a, const Rational &b)
 {
     long long int d = Rational::gcd(a.m, b.m);
-    return Rational((b.m / d) * a.n + (a.m / d) * b.n, (a.m / d) * b.m);
+    return Rational(a.n * (b.m / d) + b.n * (a.m / d), (a.m / d) * b.m);
 }
 
 Rational operator-(const Rational &a, const Rational &b)
 {
     long long int d = Rational::gcd(a.m, b.m);
-    return Rational((b.m / d) * a.n - (a.m / d) * b.n, (a.m / d) * b.m);
+    return Rational(a.n * (b.m / d) - b.n * (a.m / d), (a.m / d) * b.m);
 }
 
 Rational operator*(const Rational &a, const Rational &b)
@@ -60,10 +59,18 @@ Rational operator*(const Rational &a, const Rational &b)
 Rational operator/(const Rational &a, const Rational &b)
 {
     long long int d1 = Rational::gcd(a.n, b.n), d2 = Rational::gcd(a.m, b.m);
-    bool is_negative = (a.n < 0 && b.n > 0) || (a.n > 0 && b.n < 0);
-    long long int numerator = (llabs(a.n) / d1) * (b.m / d2),
-         denominator = (a.m / d2) * (llabs(b.n) / d1);
-    return Rational(is_negative ? -numerator : numerator, denominator);
+    return Rational((a.n / d1) * (b.m / d2), (a.m / d2) * (b.n / d1));
+}
+
+Rational::Rational(long long int a, long long int b)
+{
+    long long int d = gcd(a, b);
+    n = a / d;
+    m = b / d;
+    if (m < 0) {
+        n = -n;
+        m = -m;
+    }
 }
 
 long long int Rational::gcd(long long int a, long long int b)
