@@ -23,7 +23,8 @@ EXPECTED=$(printf "2/3
 2/1
 2/1
 -2/1
-1/2147483649")
+1/2147483649
+The denominator turned out to be zero")
 
 res=$(./$TARGET)
 rm $TARGET

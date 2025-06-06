@@ -1,6 +1,12 @@
 #include <math.h>
 #include <stdio.h>
 
+class ZeroDenominatorError {
+public:
+    const char *GetComment() const
+        { return "The denominator turned out to be zero"; }
+};
+
 class Rational {
     friend Rational operator+(const Rational &a, const Rational &b);
     friend Rational operator-(const Rational &a, const Rational &b);
@@ -64,6 +70,9 @@ Rational operator/(const Rational &a, const Rational &b)
 
 Rational::Rational(long long int a, long long int b)
 {
+    if (b == 0) {
+        throw ZeroDenominatorError();
+    }
     long long int d = gcd(a, b);
     n = a / d;
     m = b / d;
@@ -84,7 +93,8 @@ long long int Rational::gcd(long long int a, long long int b)
             b %= a;
         }
     }
-    return a + b;
+    long long int res = a + b;
+    return res > 0 ? res : 1;
 }
 
 int main()
@@ -125,6 +135,13 @@ int main()
 
     Rational g(1, 4294967298), h(1, 4294967298);
     f = g + h;
-    printf("%lld/%lld\n", f.GetN(), f.GetM());
+    f.print();
+
+    try {
+        Rational x = a / 0;
+        x.print();
+    } catch (const ZeroDenominatorError &ex) {
+        printf("%s\n", ex.GetComment());
+    }
     return 0;
 }
