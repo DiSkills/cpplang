@@ -18,4 +18,4 @@ deps.mk: $(SRCMODULES)
 	$(CXX) -MM $^ > $@
 
 clean:
-	rm prog *.o deps.mk
+	rm -f prog *.o deps.mk

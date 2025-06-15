@@ -3,41 +3,44 @@
 
 #include "sockets.hpp"
 
+enum {
+    listen_qlen = 16,
+    buffer_size = 512,
+};
+
 class Session;
 
-class Server : public FdHandler {
-    enum { listen_qlen = 16 };
+class Server : FdHandler {
+    friend class Session;
 
     long long int value;
     EventSelector *selector;
-public:
+
     static const char welcome_msg[];
-private:
-    Server(EventSelector *sel, int fd);
 public:
     virtual ~Server();
-
     static Server *Start(EventSelector *sel, int port);
-
+private:
+    Server(EventSelector *sel, int fd);
     void Close(Session *sess);
     void Execute(Session *sess, const char *cmd);
-
     virtual void Handle(bool r, bool w);
 };
 
-class Session : public FdHandler {
-    enum { buffer_size = 512 };
+class Session : FdHandler {
+    friend class Server;
 
     Server *server;
     char buffer[buffer_size];
     unsigned int usage;
-public:
+private:
     Session(Server *serv, int fd);
     virtual void Handle(bool r, bool w);
     void Send(const char *msg);
-private:
+
     static bool IsSpace(char c) { return c == ' ' || c == '\t'; }
     static void Strip(char **s);
+
     void ProcessLine(char *s) { Strip(&s); server->Execute(this, s); }
     void CheckLines();
 };
