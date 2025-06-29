@@ -8,6 +8,7 @@
 typedef int Value;
 
 class HashTable {
+    unsigned int size, capacity, max_size;
     class Item {
         const char *key;
         Value *value;
@@ -18,10 +19,7 @@ class HashTable {
         const Value *GetValue() const { return value; }
         void SetValue(Value *v) { /* delete value; */ value = v; }
     };
-    unsigned int size;
-    unsigned int capacity;
-    unsigned int max_size;
-    Item **p;
+    Item **items;
 public:
     HashTable();
     ~HashTable();
@@ -29,8 +27,8 @@ public:
     void Put(const char *key, Value *value);
 private:
     void Resize();
-    static Item **Position(const char *key, unsigned int capacity, Item **p);
-    static unsigned int Hash(const char *s, unsigned int capacity);
+    static Item *&Position(const char *key, Item **items, unsigned int size);
+    static unsigned int Hash(const char *s, unsigned int size);
 private:
     HashTable(const HashTable &);
     void operator=(const HashTable &);
