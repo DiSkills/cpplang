@@ -29,6 +29,7 @@ public:
     void Put(const char *key, Value *value);
 private:
     void Resize();
+    static Item **Position(const char *key, unsigned int capacity, Item **p);
     static unsigned int Hash(const char *s, unsigned int capacity);
 private:
     HashTable(const HashTable &);

@@ -23,15 +23,23 @@ HashTable::~HashTable()
 
 const Value *HashTable::Get(const char *key) const
 {
-    Item *t = p[Hash(key, capacity)];
-    return t && 0 == strcmp(t->GetKey(), key) ? t->GetValue() : 0;
+    Item **t = Position(key, capacity, p);
+    return *t ? (*t)->GetValue() : 0;
 }
 
 unsigned int HashTable::Hash(const char *s, unsigned int capacity)
 {
+#ifdef COLLISION
     unsigned int h = 0;
+#else
+    unsigned long int h = 5381;
+#endif
     for (; *s; s++) {
-        h = 31 * h + *s;
+#ifdef COLLISION
+        h += *s;
+#else
+        h = 33 * h + *s;
+#endif
     }
     return h % capacity;
 }
@@ -44,14 +52,10 @@ void HashTable::Resize()
         new_p[i] = 0;
     }
     for (unsigned int i = 0; i < capacity; i++) {
-        if (!p[i]) {
-            continue;
+        if (p[i]) {
+            Item **t = Position(p[i]->GetKey(), new_capacity, new_p);
+            *t = p[i];
         }
-        unsigned int h = Hash(p[i]->GetKey(), new_capacity);
-        if (new_p[h]) {
-            delete new_p[h];
-        }
-        new_p[h] = p[i];
     }
     delete[] p;
     p = new_p;
@@ -61,17 +65,27 @@ void HashTable::Resize()
 
 void HashTable::Put(const char *key, Value *value)
 {
-    unsigned int h = Hash(key, capacity);
-    if (!p[h]) {
-        if (size >= max_size) {
-            Resize();
-        }
-        p[h] = new Item(key, value);
-        size++;
-    } else if (0 != strcmp(p[h]->GetKey(), key)) {
-        delete p[h];
-        p[h] = new Item(key, value);
-    } else {
-        p[h]->SetValue(value);
+    Item **t = Position(key, capacity, p);
+    if (*t) {
+        (*t)->SetValue(value);
+        return;
     }
+    size++;
+    *t = new Item(key, value);
+    if (size >= max_size) {
+        Resize();
+    }
+}
+
+HashTable::Item **HashTable::Position(const char *key,
+        unsigned int capacity, Item **p)
+{
+    unsigned int h = Hash(key, capacity);
+    for (unsigned int i = 0; i < capacity; i++) {
+        unsigned int pos = (h + i) % capacity;
+        if (!p[pos] || 0 == strcmp(p[pos]->GetKey(), key)) {
+            return p + pos;
+        }
+    }
+    return p + h;
 }
