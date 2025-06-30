@@ -2,12 +2,14 @@
 
 #include "hash_table.hpp"
 
-HashTable::HashTable() : size(0), capacity(INIT_HASH_TABLE_SIZE)
+HashTable::HashTable(unsigned int c) : size(0), capacity(c)
 {
     max_size = capacity / 4 * 3;
     items = new Item*[capacity];
+    removed = new bool[capacity];
     for (unsigned int i = 0; i < capacity; i++) {
         items[i] = 0;
+        removed[i] = false;
     }
 }
 
@@ -19,26 +21,41 @@ HashTable::~HashTable()
         }
     }
     delete[] items;
+    delete[] removed;
 }
 
 const Value *HashTable::Get(const char *key) const
 {
-    Item *&t = GetSlot(key);
-    return t ? t->GetValue() : 0;
+    unsigned int pos = GetSlot(key, &HashTable::MatchForSearch);
+    return items[pos] ? items[pos]->GetValue() : 0;
 }
 
 void HashTable::Put(const char *key, Value *value)
 {
-    Item *&t = GetSlot(key);
-    if (t) {
-        t->SetValue(value);
+    unsigned int pos = GetSlot(key, &HashTable::MatchForInsert);
+    if (items[pos]) {
+        items[pos]->SetValue(value);
         return;
     }
     size++;
-    t = new Item(key, value);
+    removed[pos] = false;
+    items[pos] = new Item(key, value);
     if (size >= max_size) {
         Resize();
     }
+}
+
+bool HashTable::Remove(const char *key)
+{
+    unsigned int pos = GetSlot(key, &HashTable::MatchForSearch);
+    if (!items[pos]) {
+        return false;
+    }
+    size--;
+    removed[pos] = true;
+    delete items[pos];
+    items[pos] = 0;
+    return true;
 }
 
 void HashTable::Resize()
@@ -49,27 +66,42 @@ void HashTable::Resize()
 
     Item **old_items = items;
     items = new Item*[capacity];
+    delete[] removed;
+    removed = new bool[capacity];
     for (unsigned int i = 0; i < capacity; i++) {
         items[i] = 0;
+        removed[i] = false;
     }
     for (unsigned int i = 0; i < old_capacity; i++) {
         if (old_items[i]) {
-            GetSlot(old_items[i]->GetKey()) = old_items[i];
+            unsigned int pos = GetSlot(old_items[i]->GetKey(),
+                    &HashTable::MatchForInsert);
+            items[pos] = old_items[i];
         }
     }
     delete[] old_items;
 }
 
-HashTable::Item *&HashTable::GetSlot(const char *key) const
+bool HashTable::MatchForSearch(unsigned int pos, const char *key) const
+{
+    return !removed[pos] && MatchForInsert(pos, key);
+}
+
+bool HashTable::MatchForInsert(unsigned int pos, const char *key) const
+{
+    return !items[pos] || 0 == strcmp(items[pos]->GetKey(), key);
+}
+
+unsigned int HashTable::GetSlot(const char *key, MatchFunc match) const
 {
     unsigned int h = Hash(key, capacity);
     for (unsigned int i = 0; i < capacity; i++) {
         unsigned int pos = (h + i) % capacity;
-        if (!items[pos] || 0 == strcmp(items[pos]->GetKey(), key)) {
-            return items[pos];
+        if ((this->*match)(pos, key)) {
+            return pos;
         }
     }
-    return items[h];
+    return h;
 }
 
 unsigned int HashTable::Hash(const char *s, unsigned int size)
