@@ -5,6 +5,18 @@
 #define INIT_HASH_TABLE_SIZE 1024
 #endif
 
+template <class Key, class Value>
+class Pair {
+    Key key;
+    Value value;
+public:
+    Pair(const Key &k, const Value &v) : key(k), value(v) {}
+    const Key &GetKey() const { return key; }
+    const Value &GetValue() const { return value; }
+    void SetKey(const Key &k) { key = k; }
+    void SetValue(const Value &v) { value = v; }
+};
+
 /**
  * A generic hash table using open addressing with linear probing.
  *  Supports: Put, Get, Remove. It automatically resizes when the load
@@ -16,6 +28,7 @@
  *     - destructor
  *     - unsigned int Hash() const
  *     - bool operator==(const Key &) const
+ *     - assignment (normal)
  * 
  * @tparam Value the type of values stored in the table.
  *   Requirements:
@@ -27,16 +40,7 @@ template <class Key, class Value>
 class HashTable {
     unsigned int size, capacity, max_size;
     bool *removed;
-    class Item {
-        Key key;
-        Value value;
-    public:
-        Item(const Key &k, const Value &v) : key(k), value(v) {}
-        const Key &GetKey() const { return key; }
-        const Value &GetValue() const { return value; }
-        void SetValue(const Value &v) { value = v; }
-    };
-    Item **items;
+    Pair<Key, Value> **items;
 public:
     HashTable(unsigned int c = INIT_HASH_TABLE_SIZE);
     ~HashTable();
@@ -60,7 +64,7 @@ template <class Key, class Value>
 HashTable<Key, Value>::HashTable(unsigned int c) : size(0), capacity(c)
 {
     max_size = capacity / 4 * 3;
-    items = new Item*[capacity];
+    items = new Pair<Key, Value>*[capacity];
     removed = new bool[capacity];
     for (unsigned int i = 0; i < capacity; i++) {
         items[i] = 0;
@@ -97,7 +101,7 @@ void HashTable<Key, Value>::Put(const Key &key, const Value &value)
     }
     size++;
     removed[pos] = false;
-    items[pos] = new Item(key, value);
+    items[pos] = new Pair<Key, Value>(key, value);
     if (size >= max_size) {
         Resize();
     }
@@ -124,8 +128,8 @@ void HashTable<Key, Value>::Resize()
     capacity *= 2;
     max_size = capacity / 4 * 3;
 
-    Item **old_items = items;
-    items = new Item*[capacity];
+    Pair<Key, Value> **old_items = items;
+    items = new Pair<Key, Value>*[capacity];
     delete[] removed;
     removed = new bool[capacity];
     for (unsigned int i = 0; i < capacity; i++) {
