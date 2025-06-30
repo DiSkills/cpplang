@@ -23,13 +23,13 @@ HashTable::~HashTable()
 
 const Value *HashTable::Get(const char *key) const
 {
-    Item *&t = Position(key, items, capacity);
+    Item *&t = GetSlot(key);
     return t ? t->GetValue() : 0;
 }
 
 void HashTable::Put(const char *key, Value *value)
 {
-    Item *&t = Position(key, items, capacity);
+    Item *&t = GetSlot(key);
     if (t) {
         t->SetValue(value);
         return;
@@ -43,28 +43,28 @@ void HashTable::Put(const char *key, Value *value)
 
 void HashTable::Resize()
 {
-    unsigned int new_capacity = capacity * 2;
-    Item **new_items = new Item*[new_capacity];
-    for (unsigned int i = 0; i < new_capacity; i++) {
-        new_items[i] = 0;
-    }
+    unsigned int old_capacity = capacity;
+    capacity *= 2;
+    max_size = capacity / 4 * 3;
+
+    Item **old_items = items;
+    items = new Item*[capacity];
     for (unsigned int i = 0; i < capacity; i++) {
-        if (items[i]) {
-            Position(items[i]->GetKey(), new_items, new_capacity) = items[i];
+        items[i] = 0;
+    }
+    for (unsigned int i = 0; i < old_capacity; i++) {
+        if (old_items[i]) {
+            GetSlot(old_items[i]->GetKey()) = old_items[i];
         }
     }
-    delete[] items;
-    items = new_items;
-    capacity = new_capacity;
-    max_size = new_capacity / 4 * 3;
+    delete[] old_items;
 }
 
-HashTable::Item *&HashTable::Position(const char *key, Item **items,
-        unsigned int size)
+HashTable::Item *&HashTable::GetSlot(const char *key) const
 {
-    unsigned int h = Hash(key, size);
-    for (unsigned int i = 0; i < size; i++) {
-        unsigned int pos = (h + i) % size;
+    unsigned int h = Hash(key, capacity);
+    for (unsigned int i = 0; i < capacity; i++) {
+        unsigned int pos = (h + i) % capacity;
         if (!items[pos] || 0 == strcmp(items[pos]->GetKey(), key)) {
             return items[pos];
         }
